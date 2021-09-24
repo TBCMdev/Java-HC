@@ -1,5 +1,13 @@
-.eat_class{
+.clickmebutton{
+	position: relative;
+	left: 50%;
 	background: red;
 }
-.pizza_place{
+.pizzaClass{
+	position: relative;
+	left: 50%;
+}
+.address1{
+	position: relative;
+	left: 50%;
 }

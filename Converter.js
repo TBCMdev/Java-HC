@@ -1,6 +1,9 @@
+import {Sement} from './sements.js'
 import { readFile, writeFile, writeFileSync } from 'fs'
 import {properties} from './css.properties.js'
-import {Sement} from './sements.js'
+import http from 'http'
+import { SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER } from 'constants'
+import open from 'open'
 const defHTMLtop = 
 `<!DOCTYPE html>
 <header>
@@ -10,7 +13,7 @@ const defHTMLtop =
 `//<head> is removed
 
 class UIElement{
-    inDiv = false
+    inElement = false
     placement = false//false is head, true is body
     css = false
     cssUsage = ""
@@ -35,19 +38,24 @@ class UIElement{
  * @returns true if the operation is a success, and throws an error otherwise.
  */
     addSement(sement){
-        if (!Sement.isPrototypeOf(sement))
+        if (!sement instanceof Sement)
             throw new Error(`at 'addSement() in converter.js, cannot add ${sement.constructor.name}' to 
             the UIElement, because ${sement.constructor.name} does not inherit from Sement.`)
-        this.usage = this.usage.replace("\\l",`${sement.usage} \\l`)
+        this.usage = this.usage.replace("---cont---",`\n${sement.usage} ---cont---`)
         return true
     }
-    getElement(func){
+    /**
+     * this function is used to grab elements from a webpage AT RUNTIME.
+     * it will return null if the html page is not active.
+     * 
+     * @returns the HTML element if the operation was a success, and null otherwise, 
+     */
+    getElement(){
         try{
             // use this function to assign custom events.
-            document.getElementById(this.id)
-            return true
+            return document.getElementById(this.id)
         }catch{
-            return false
+            return null
         }
     }
     addProperty(type, property){
@@ -121,14 +129,15 @@ class Page{
     head = "<head>\n"
     body = "<body>\n"
     CSSContent = ``
-    elements = {"Button": [],"Text": [],"Div": [], "Image": [],"Address": []}
+    elements = {"Button": [],"Text": [],"Div": [], "Image": [],"Address": []/* the rest of the parameters are auto defined and added,
+    these are just display.*/}
     connected_HMTL_P = ""
     connected_CSS = ""
 /**
-     * a DIV is a HTML element that holds other elements. it behaves like a class.
-     * @param {String} path the text's content/name
-     * @param {String} connected_HMTL the class name
-     * @param {String} connected_CSS where the element will go in the HTML document. head | body
+     * a page is a HTML document.
+     * @param {String} path the path to the js file it is being written in
+     * @param {String} connected_HMTL a HTML file path (will be created if it does not exist)
+     * @param {String} connected_CSS a CSS file path (will be created if it does not exist)
      */
     constructor(path, connected_HMTL = "",connected_CSS = ""){
         this.html += `<script src=\"${path}\"></script>\n`
@@ -145,31 +154,39 @@ class Page{
             this.connected_CSS = connected_CSS
         }
     }
-
+    #run(){
+        open(this.connected_HMTL_P)
+    }
     addElement(element){
+        if (!(element in this.elements))
+            this.elements[element.constructor.name] = []
         this.elements[element.constructor.name].push(element)
     }
     refresh(){
         this.load()
     }
-    load(){
+    /**
+     * loads the page and compiles it into HTML and CSS.
+     * @param {Boolean} _open whether or not you want the HTML page to be opened on your default browser. (DEF is false) 
+     */
+    load(_open = false){
         //#region HTML
         for (var k in this.elements){
             for (const x of this.elements[k]){
                 if (!x.placement){
-                    this.head += x.usage + "\n"
+                    this.head += x.usage.replace("\\l","") + "\n"
                     if (x.moreUsage && !this.head.includes(x.additionalUsage)){
                         this.head += x.additionalUsage + "\n"
                     }
                 }else{
-                    this.body += x.usage + "\n"
+                    this.body += x.usage.replace("\\l","") + "\n"
                     if (x.moreUsage && !this.body.includes(x.additionalUsage)){
                         this.body += x.additionalUsage + "\n"
                     }
                 }
             }
         }
-        this.close()
+        this.#close()
         //#endregion
 
         //#region CSS
@@ -179,15 +196,15 @@ class Page{
             }
         }
         //#endregion
-        this.finalChecks()
-        this.write()
+        this.#finalChecks()
+        this.#write(_open)
     }
 
-    finalChecks(){
+    #finalChecks(){
         //check if a div member has been created twice and one of them is outside of the div quadrant
         for(var xr in this.elements){
             for(const x of this.elements[xr]){
-                if (x.inDiv){
+                if (x.inElement){
                     if (this.head.includes(x.usage) || this.body.includes(x.usage)){
                         throw new Error(`at final checks, cannot add '${x.name}'(of type ${x.constructor.name}) to a page as it is in a DIV.
                         please only add the DIV to the page, and not the elements of the DIV.`)
@@ -196,17 +213,20 @@ class Page{
             }
         }
     }
-    close(){
+    #close(){
         this.head += "</head>\n"
         this.body += "</body> \n"
     }
-    write(){
+    #write(_open){
         writeFileSync(this.connected_HMTL_P,this.html + this.head + this.body,(err) => {
             if(err) throw err
         })//writes the HTML file.
         writeFileSync(this.connected_CSS,this.CSSContent,(err) =>{
             if(err)throw err
         })//writes the CSS file.
+        if(_open){
+            this.#run()
+        }
     }
 }
 class Button extends UIElement{
@@ -244,7 +264,7 @@ class Button extends UIElement{
     }
 }
 class Text extends UIElement{
-    usage = "<p id=\"\" class=\"\">---name---</p>"
+    usage = "<p id=\"\" class=\"\" \\l>---name---</p>"
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
     name = ""
@@ -270,7 +290,7 @@ class Text extends UIElement{
     }
 }
 class Title extends UIElement{
-    usage = "<title id=\"\" class=\"\">---name---</title>"
+    usage = "<title id=\"\" class=\"\" \\l>---name---</title>"
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
     name = ""
@@ -296,7 +316,7 @@ class Title extends UIElement{
     }
 }
 class Link extends UIElement{
-    usage = "<link id=\"\" class=\"\">---name---</link>"
+    usage = "<link id=\"\" class=\"\" \\l>---name---</link>"
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
     name = ""
@@ -329,7 +349,7 @@ class Link extends UIElement{
 class Div extends UIElement{
 
 
-    usage = "<div id=\"\" class=\"\">---cont---\n</div>"
+    usage = "<div id=\"\" class=\"\" \\l>---cont---\n</div>"
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
     name = ""
@@ -375,16 +395,17 @@ class Div extends UIElement{
     build(){
         this._predefinedBuild()
         this.elements.forEach(x => {
-            x.inDiv = true
+            x.inElement = true
             this.usage = this.usage.replace("---cont---",`\n${x.usage} ---cont---`)
         })
         this.usage = this.usage.replace("---cont---","")
     }
 }
 class Image extends UIElement{
-    usage = "<image id=\"\" class=\"\" alt=\"\" src=\"\"></image>"
+    usage = "<image id=\"\" class=\"\" alt=\"\" src=\"\" \\l>---cont---</image>"
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
+    elements = []
     name = ""
     alt = ""
     /**
@@ -408,12 +429,17 @@ class Image extends UIElement{
      */
     build(){
         this._predefinedBuild()
+        this.elements.forEach(x => {
+            x.inElement = true
+            this.usage = this.usage.replace("---cont---",`\n${x.usage} ---cont---`)
+        })
         this.usage = this.usage.replace(`src=\"\"`,`src=\"${this.name}\"`)
         .replace("alt=\"\"", `alt=\"${this.alt}\"`)
+        .replace("---cont---","")
     }
 }
 class Address extends UIElement{
-    usage = "<address id=\"\" class=\"\">---cont---</address>"
+    usage = "<address id=\"\" class=\"\" \\l>---cont---</address>"
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
     name = ""
