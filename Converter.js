@@ -1,5 +1,6 @@
 import { readFile, writeFile, writeFileSync } from 'fs'
 import {properties} from './css.properties.js'
+import {Sement} from './sements.js'
 const defHTMLtop = 
 `<!DOCTYPE html>
 <header>
@@ -27,6 +28,18 @@ class UIElement{
                 this.placement = true
                 break
         }
+    }
+/**
+ * adds a parameter to the usage of the element.
+ * @param {Sement} sement the sement being added to the attribute  
+ * @returns true if the operation is a success, and throws an error otherwise.
+ */
+    addSement(sement){
+        if (!Sement.isPrototypeOf(sement))
+            throw new Error(`at 'addSement() in converter.js, cannot add ${sement.constructor.name}' to 
+            the UIElement, because ${sement.constructor.name} does not inherit from Sement.`)
+        this.usage = this.usage.replace("\\l",`${sement.usage} \\l`)
+        return true
     }
     getElement(func){
         try{
@@ -111,7 +124,12 @@ class Page{
     elements = {"Button": [],"Text": [],"Div": [], "Image": [],"Address": []}
     connected_HMTL_P = ""
     connected_CSS = ""
-
+/**
+     * a DIV is a HTML element that holds other elements. it behaves like a class.
+     * @param {String} path the text's content/name
+     * @param {String} connected_HMTL the class name
+     * @param {String} connected_CSS where the element will go in the HTML document. head | body
+     */
     constructor(path, connected_HMTL = "",connected_CSS = ""){
         this.html += `<script src=\"${path}\"></script>\n`
         if (connected_HMTL == ""){
@@ -200,11 +218,11 @@ class Button extends UIElement{
     hoverEvent = null
 
     /**
-     * 
-     * @param {String} name 
-     * @param {String} c 
-     * @param {String} id 
-     * @param {String} _placement 
+     * a Button is a HTML element used mostly for click and hover events.
+     * @param {String} name the text's content/name
+     * @param {String} c the class name
+     * @param {String} id the id of the Button
+     * @param {String} _placement where the element will go in the HTML document. head | body
      */
     constructor(name,c,id,_placement){
         super(_placement)
@@ -230,7 +248,12 @@ class Text extends UIElement{
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
     name = ""
-
+/**
+     * text is a HTML element that displays text to the page.
+     * @param {String} name the text's content/name
+     * @param {String} c the class name
+     * @param {String} _placement where the element will go in the HTML document. head | body
+     */
     constructor(name,c,_placement){
         super(_placement)
         this.classVar = c
@@ -251,7 +274,12 @@ class Title extends UIElement{
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
     name = ""
-
+/**
+     * the title is the title of the HTML page.
+     * @param {String} name the Title content/name
+     * @param {String} c the class name
+     * @param {String} _placement where the element will go in the HTML document. head | body
+     */
     constructor(name,c,_placement){
         super(_placement)
         this.classVar = c
@@ -272,7 +300,12 @@ class Link extends UIElement{
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
     name = ""
-
+    /**
+     * a DIV is a HTML element that holds other elements. it behaves like a class.
+     * @param {String} link the links content
+     * @param {String} c the class name
+     * @param {String} _placement where the element will go in the HTML document. head | body
+     */
     constructor(link,c,_placement){
         super(_placement)
         this.classVar = c
@@ -301,6 +334,13 @@ class Div extends UIElement{
     cssProperties = []
     name = ""
     elements = []
+    /**
+     * a DIV is a HTML element that holds other elements. it behaves like a class.
+     * @param {String} name the name of the DIV
+     * @param {String} c the div class name
+     * @param {String} _placement where the element will go in the HTML document. head | body
+     * @param {String || Array]} elements the DIV's current elements. can be ignored. only accepts objects that extend from UIElement.
+     */
     constructor(name,c,_placement,elements = []){
         super(_placement)
         this.elements = elements
@@ -429,4 +469,4 @@ class Address extends UIElement{
 class UITags{
     static br = "<br>"
 }
-export{UITags,Address,Page,Text,Button,Div,Link,Image,Title,UIElement}
+export{UIElement,UITags,Address,Page,Text,Button,Div,Link,Image,Title}
