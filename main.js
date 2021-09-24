@@ -9,7 +9,6 @@ let btn = new Button("click to eat","eat_class","1","head")
 btn.build()
 btn.configure(["background","red"])
 btn.onClick(eatPizza)
-
 let address = new Address("pizza_place",`pizza@hotmail.com ${UITags.br} -s- 0814975197`, "body")
 address.build()
 page1.addElement(address)

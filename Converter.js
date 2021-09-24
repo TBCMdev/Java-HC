@@ -108,7 +108,7 @@ class Page{
     head = "<head>\n"
     body = "<body>\n"
     CSSContent = ``
-    elements = {"Button": [],"Text": [],"Div": [], "Image": []}
+    elements = {"Button": [],"Text": [],"Div": [], "Image": [],"Address": []}
     connected_HMTL_P = ""
     connected_CSS = ""
 
@@ -151,7 +151,7 @@ class Page{
                 }
             }
         }
-        this.#close()
+        this.close()
         //#endregion
 
         //#region CSS
@@ -161,11 +161,11 @@ class Page{
             }
         }
         //#endregion
-        this.#finalChecks()
-        this.#write()
+        this.finalChecks()
+        this.write()
     }
 
-    #finalChecks(){
+    finalChecks(){
         //check if a div member has been created twice and one of them is outside of the div quadrant
         for(var xr in this.elements){
             for(const x of this.elements[xr]){
@@ -178,11 +178,11 @@ class Page{
             }
         }
     }
-    #close(){
+    close(){
         this.head += "</head>\n"
         this.body += "</body> \n"
     }
-    #write(){
+    write(){
         writeFileSync(this.connected_HMTL_P,this.html + this.head + this.body,(err) => {
             if(err) throw err
         })//writes the HTML file.
@@ -199,6 +199,13 @@ class Button extends UIElement{
     clickEvent = null
     hoverEvent = null
 
+    /**
+     * 
+     * @param {String} name 
+     * @param {String} c 
+     * @param {String} id 
+     * @param {String} _placement 
+     */
     constructor(name,c,id,_placement){
         super(_placement)
         this.classVar = c
@@ -209,7 +216,11 @@ class Button extends UIElement{
 
     
     
-    
+    /**
+     * build the element. this is called when the element is completely finished and ready to be put 
+     * on a HTML page. However, when changing the CSS or Custom values of an element, they must be
+     * configured after.
+     */
     build(){
         this._predefinedBuild()// for the static proerties to be assigned
     }
@@ -226,6 +237,11 @@ class Text extends UIElement{
         this.name = name
         this.cssUsage = `.${this.classVar}{\n}`
     }
+   /**
+     * build the element. this is called when the element is completely finished and ready to be put 
+     * on a HTML page. However, when changing the CSS or Custom values of an element, they must be
+     * configured after.
+     */
     build(){
         this._predefinedBuild()
     }
@@ -242,6 +258,11 @@ class Title extends UIElement{
         this.name = name
         this.cssUsage = `.${this.classVar}{\n}`
     }
+    /**
+     * build the element. this is called when the element is completely finished and ready to be put 
+     * on a HTML page. However, when changing the CSS or Custom values of an element, they must be
+     * configured after.
+     */
     build(){
         this._predefinedBuild()
     }
@@ -258,11 +279,23 @@ class Link extends UIElement{
         this.name = link
         this.cssUsage = `.${this.classVar}{\n}`
     }
+   /**
+     * build the element. this is called when the element is completely finished and ready to be put 
+     * on a HTML page. However, when changing the CSS or Custom values of an element, they must be
+     * configured after.
+     */
     build(){
         this._predefinedBuild()
     }
 }
+
+
+   /**
+ * Div is a HTML element used for storing nuermous elements into a class.
+ */
 class Div extends UIElement{
+
+
     usage = "<div id=\"\" class=\"\">---cont---\n</div>"
     cssUsage = `.${this.classVar}{\n}`
     cssProperties = []
@@ -275,6 +308,11 @@ class Div extends UIElement{
         this.name = name
         this.cssUsage = `.${this.classVar}{\n}`
     }
+    /**
+     * 
+     * @param {UIElement} el 
+     * @returns true if the element is added, and false if otherwise.
+     */
     addElement(el){
         if(!this.elements.includes(el)){
             this.elements.push(el)
@@ -282,9 +320,18 @@ class Div extends UIElement{
         }
         return false
     }
+    /**
+     * 
+     * @param {UIElement} el 
+     */
     removeElement(el){
         this.elements.splice(this.elements.indexOf(el))
     }
+    /**
+     * build the element. this is called when the element is completely finished and ready to be put 
+     * on a HTML page. However, when changing the CSS or Custom values of an element, they must be
+     * configured after.
+     */
     build(){
         this._predefinedBuild()
         this.elements.forEach(x => {
@@ -300,6 +347,13 @@ class Image extends UIElement{
     cssProperties = []
     name = ""
     alt = ""
+    /**
+     * an Image is a HTML element used to display custom images to the page.
+     * @param {String} src the file path to the image
+     * @param {String} c the class
+     * @param {String} alt the alternative text to the image. this is used as a kind of description.
+     * @param {String} placement where the element will go in the HTML file. body | head
+     */
     constructor(src,c,alt = "",_placement){
         super(_placement)
         this.classVar = c
@@ -307,6 +361,11 @@ class Image extends UIElement{
         this.alt = alt
         this.cssUsage = `.${this.classVar}{\n}`
     }
+    /**
+     * build the element. this is called when the element is completely finished and ready to be put 
+     * on a HTML page. However, when changing the CSS or Custom values of an element, they must be
+     * configured after.
+     */
     build(){
         this._predefinedBuild()
         this.usage = this.usage.replace(`src=\"\"`,`src=\"${this.name}\"`)
@@ -322,10 +381,15 @@ class Address extends UIElement{
     constructor(c,content = [] || "",_placement){
         super(_placement)
         this.classVar = c
-        this.name = src
+        this.name = ""
         this.content = content
         this.cssUsage = `.${this.classVar}{\n}`
     }
+    /**
+     * build the element. this is called when the element is completely finished and ready to be put 
+     * on a HTML page. However, when changing the CSS or Custom values of an element, they must be
+     * configured after.
+     */
     build(){
         this._predefinedBuild()
         if (typeof(content) == "object"){
@@ -335,7 +399,7 @@ class Address extends UIElement{
             }
         }else{
             //treat it like a string 
-            if(this.content.includes("-s-") &&  this.content.includes("\"-s-")){
+            if(this.content.includes("-s-") && !this.content.includes("\"-s-")){
                 // it wants to  be split
                 for (const x of this.content.split("-s-")){
                     if (!this.inQuotes(x)){
