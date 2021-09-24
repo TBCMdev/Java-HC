@@ -132,23 +132,21 @@ class Page{
         this.elements[element.constructor.name].push(element)
     }
     refresh(){
-        load()
+        this.load()
     }
     load(){
         //#region HTML
         for (var k in this.elements){
             for (const x of this.elements[k]){
-                if (x.placement == false){
+                if (!x.placement){
                     this.head += x.usage + "\n"
                     if (x.moreUsage && !this.head.includes(x.additionalUsage)){
                         this.head += x.additionalUsage + "\n"
-                        console.log(x.additionalUsage)
                     }
                 }else{
                     this.body += x.usage + "\n"
                     if (x.moreUsage && !this.body.includes(x.additionalUsage)){
                         this.body += x.additionalUsage + "\n"
-                        console.log(x.additionalUsage)
                     }
                 }
             }
@@ -166,6 +164,7 @@ class Page{
         this.#finalChecks()
         this.#write()
     }
+
     #finalChecks(){
         //check if a div member has been created twice and one of them is outside of the div quadrant
         for(var xr in this.elements){
@@ -201,8 +200,8 @@ class Button extends UIElement{
     hoverEvent = null
 
     constructor(name,c,id,_placement){
-        super(_placement);
-        this.classVar = c;
+        super(_placement)
+        this.classVar = c
         this.id = id
         this.name = name
         this.cssUsage = `.${this.classVar}{\n}`
@@ -222,8 +221,8 @@ class Text extends UIElement{
     name = ""
 
     constructor(name,c,_placement){
-        super(_placement);
-        this.classVar = c;
+        super(_placement)
+        this.classVar = c
         this.name = name
         this.cssUsage = `.${this.classVar}{\n}`
     }
@@ -238,8 +237,8 @@ class Title extends UIElement{
     name = ""
 
     constructor(name,c,_placement){
-        super(_placement);
-        this.classVar = c;
+        super(_placement)
+        this.classVar = c
         this.name = name
         this.cssUsage = `.${this.classVar}{\n}`
     }
@@ -254,8 +253,8 @@ class Link extends UIElement{
     name = ""
 
     constructor(link,c,_placement){
-        super(_placement);
-        this.classVar = c;
+        super(_placement)
+        this.classVar = c
         this.name = link
         this.cssUsage = `.${this.classVar}{\n}`
     }
@@ -270,9 +269,9 @@ class Div extends UIElement{
     name = ""
     elements = []
     constructor(name,c,_placement,elements = []){
-        super(_placement);
+        super(_placement)
         this.elements = elements
-        this.classVar = c;
+        this.classVar = c
         this.name = name
         this.cssUsage = `.${this.classVar}{\n}`
     }
@@ -291,7 +290,7 @@ class Div extends UIElement{
         this.elements.forEach(x => {
             x.inDiv = true
             this.usage = this.usage.replace("---cont---",`\n${x.usage} ---cont---`)
-        });
+        })
         this.usage = this.usage.replace("---cont---","")
     }
 }
@@ -302,8 +301,8 @@ class Image extends UIElement{
     name = ""
     alt = ""
     constructor(src,c,alt = "",_placement){
-        super(_placement);
-        this.classVar = c;
+        super(_placement)
+        this.classVar = c
         this.name = src
         this.alt = alt
         this.cssUsage = `.${this.classVar}{\n}`
@@ -314,4 +313,56 @@ class Image extends UIElement{
         .replace("alt=\"\"", `alt=\"${this.alt}\"`)
     }
 }
-export{Page,Text,Button,Div,Link,Image,Title,UIElement}
+class Address extends UIElement{
+    usage = "<address id=\"\" class=\"\">---cont---</address>"
+    cssUsage = `.${this.classVar}{\n}`
+    cssProperties = []
+    name = ""
+    content = [] || ""
+    constructor(c,content = [] || "",_placement){
+        super(_placement)
+        this.classVar = c
+        this.name = src
+        this.content = content
+        this.cssUsage = `.${this.classVar}{\n}`
+    }
+    build(){
+        this._predefinedBuild()
+        if (typeof(content) == "object"){
+            // treat it like an array
+            for (const x of this.content){
+                this.usage = this.usage.replace("---cont---",`${x}\n ---cont---`)
+            }
+        }else{
+            //treat it like a string 
+            if(this.content.includes("-s-") &&  this.content.includes("\"-s-")){
+                // it wants to  be split
+                for (const x of this.content.split("-s-")){
+                    if (!this.inQuotes(x)){
+                        this.usage = this.usage.replace("---cont---",`${x}\n ---cont---`)
+                    }
+                }
+            }
+        }
+        this.usage = this.usage.replace("---cont---","")
+    }
+    inQuotes(){
+        let temp = ["\'","\""]
+        if (this.content.includes("-s-")){
+            if(this.content.includes("\"")){
+                if (this.content.indexOf("\"") < this.content.indexOf("-s-") || 
+                this.content.indexOf("\'") < this.content.indexOf("-s-") && 
+                temp.some(el =>this.content.split("\"")[1]) || temp.some(el =>this.content.split("\'")[1])){
+                    return true
+                    //checks to see if a split indicator(-s-) is in between "" or '', and if so then we should 
+                    //return true
+                }
+            }
+        }
+        return false
+    }
+}
+class UITags{
+    static br = "<br>"
+}
+export{UITags,Address,Page,Text,Button,Div,Link,Image,Title,UIElement}
