@@ -1,20 +1,29 @@
-import {UITags,Address,Page,Button,Div,Text, Title,Image} from "./Converter.js"
 import {Anchor} from "./sements.js"
+import {UITags,Address,Page,Button,Div,Text, Title,Image} from "./Converter.js"
 
-let page1 = new Page("./main.js","./export.html","./export.css")
 
-function eatPizza(){
-    console.log("yum")
-}
-let btn = new Button("click to eat","eat_class","1","head")
-btn.build()
-btn.configure(["background","red"])
-btn.onClick(eatPizza)
-let address = new Address("pizza_place",`pizza@hotmail.com ${UITags.br} -s- 0814975197`, "body")
-let att = new Anchor("email","gmail@example.com","Anchor1Class")
-att.build()
-att.insertInto(address)
+let page = new Page("./main.js","./export.html","./export.css")
+
+let button = new Button("click me!","clickmebutton","1","body")
+button.build()
+
+button.configure(["position","relative"],["left","50%"],["background","red"])
+
+let address = new Address("address1","","body")
+
+let anc1 = new Anchor("gmail@gmail.com",Anchor.HREFType.EMAIL,"gmail:","anc1Class")
+anc1.build()
+
+anc1.insertInto(address)
 address.build()
-page1.addElement(address)
-page1.addElement(btn)
-page1.load()
+
+address.configure(["position","relative"],["left","50%"])
+let img = new Image("./pizza.jpg","pizzaClass","pizza!","body")
+img.build()
+
+img.configure(["position","relative"],["left","50%"])
+
+page.addElement(img)
+page.addElement(address)
+page.addElement(button)
+page.load(true)
