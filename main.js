@@ -1,29 +1,14 @@
 import {Anchor} from "./sements.js"
-import {UITags,Address,Page,Button,Div,Text, Title,Image} from "./Converter.js"
-
+import {Animation, UITags,Address,Page,Button,Div,Text, Title,Image, UIElement} from "./Converter.js"
 
 let page = new Page("./main.js","./export.html","./export.css")
 
-let button = new Button("click me!","clickmebutton","1","body")
-button.build()
+let button1 = new Button("click me!", "buttonclass","1","body")
+button1.build()
 
-button.configure(["position","relative"],["left","50%"],["background","red"])
+button1.place("50%","50%",UIElement.PositionType.ABSOLUTE,UIElement.Direction.LEFT,UIElement.Direction.TOP)
+button1.configure(["transform","scale(3)"])
 
-let address = new Address("address1","","body")
-
-let anc1 = new Anchor("gmail@gmail.com",Anchor.HREFType.EMAIL,"gmail:","anc1Class")
-anc1.build()
-
-anc1.insertInto(address)
-address.build()
-
-address.configure(["position","relative"],["left","50%"])
-let img = new Image("./pizza.jpg","pizzaClass","pizza!","body")
-img.build()
-
-img.configure(["position","relative"],["left","50%"])
-
-page.addElement(img)
-page.addElement(address)
-page.addElement(button)
-page.load(true)
+let anim = new Animation("myanim","whenslide","2s","","","","","","")
+page.addElement(button1)
+page.load()

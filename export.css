@@ -1,13 +1,6 @@
-.clickmebutton{
-	position: relative;
+.buttonclass{
+	position: absolute;
 	left: 50%;
-	background: red;
-}
-.pizzaClass{
-	position: relative;
-	left: 50%;
-}
-.address1{
-	position: relative;
-	left: 50%;
+	top: 50%;
+	transform: scale(3);
 }
