@@ -1,3 +1,23 @@
 {
-    "type":"module"
+  "type": "module",
+  "name": "javahc",
+  "version": "0.0.1",
+  "description": "a npm package that allows you to write websites in only Javascript! it converts JS code to HTML CSS, and JS.",
+  "main": "Converter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deadgunnerYT/Java-HC.git"
+  },
+  "keywords": [
+    "Javascript"
+  ],
+  "author": "TBCM",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deadgunnerYT/Java-HC/issues"
+  },
+  "homepage": "https://github.com/deadgunnerYT/Java-HC#readme"
 }

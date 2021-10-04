@@ -148,7 +148,56 @@ class UIElement{
         .replace("---name---", this.name)
     }
 }
+class Keyframe{
+    usage = "?from {\n}\n ?to {\n}\n ?% {\n}\n"
+    from = {}
+    to = {}
+    percentages = {}
+    constructor(from = {}/** "top" : "0.1px" **/, to = {},percentages = {}){
+        this.from = from
+        this.to = to
+        this.percentages = percentages
+        this.#build()
+    }
+
+    #build(){
+        let f,t,p = false
+        for (const [k,v] of Object.entries(this.from)){
+            f = true
+            this.usage = this.usage.replace("?from {\n}\n ", `\nfrom {\n\t${k}: ${v};\n}\n`)
+        }
+        for (const [k,v] of Object.entries(this.to)){
+            t =  true
+            this.usage = this.usage.replace("?to {\n}\n ", `\nto {\n\t${k}: ${v};\n}\n`)
+        }
+        for (const [k/**a% */,v/**{} */] of Object.entries(this.percentages)){
+            p = true
+            this.usage = this.usage.replace("?% {\n}\n", `s**`)
+            for (const [k1,v1] of Object.entries(v)){
+                this.usage = this.usage.replace(`s**`, `\n\t${k} {\n\t\t${k1}: ${v1}\n\t}\n s**`)
+            }
+        }
+        if(!f){
+            this.usage = this.usage.replace("?from {\n}\n ","")
+        }
+        if(!t){
+            this.usage = this.usage.replace("?to {\n}\n ","")
+        }
+        if(!p){
+            this.usage = this.usage.replace("?% {\n}\n","")
+        }
+        this.usage = this.usage.replace("s**","")
+    }
+}
 class Animation{
+    static params = {
+        timing:"timing",
+        delay:"delay",
+        iteration_count:"itercount",
+        direction:"direction",
+        fillmode:"fillmode",
+        playstate:"playstate"
+    }
     name = ""
     anim_name = ""
     duration = ""
@@ -159,59 +208,108 @@ class Animation{
     fill_mode = ""
     play_state = ""
     cssUsage = ''
-    keyFrameParams = {}
-    main_usage = `{\n}\n\n`
-    sec_usage = `@keyframe {\n}\n`
-    constructor(name,anim_name, duration, timing_function, delay, iteration_count, direction, fill_mode, play_state){
+    keyFrameParams = []
+    sec_usage = `@keyframes {\n}\n`
+    objects = []
+    vals = {}
+    /**
+     * 
+     * @param {Array} arr 
+     * @param {String} q 
+     * @returns 
+     */
+    #ignoreCaseFind(arr,q){
+        console.log(arr)
+        for (const x of arr){
+            if (x[0].toString().toLowerCase() == q){
+                if (x[0] == undefined)
+                    return ""
+                return x[1]
+            }
+        }
+        return ""
+    }
+    /**
+     * NOTE: each time the animation is changed, it will call build() on all of the objects.
+     * @param {String} name 
+     * @param {String} anim_name 
+     * @param {Float} duration the duration of the animation. it is measured in seconds.
+     * @param {*} timing_function 
+     * @param {*} delay 
+     * @param {*} iteration_count 
+     * @param {*} direction 
+     * @param {*} fill_mode 
+     * @param {*} play_state 
+     * @param {Array} x
+     */
+    constructor(name,objects, anim_name, duration,...x/** timing_function, delay, iteration_count, direction, fill_mode, play_state */){
+        this.objects = objects
         this.name = name
         this.anim_name = anim_name
-        this.duration = duration
-        this.timing_function = timing_function
-        this.delay = delay
-        this.iteration_count = iteration_count
-        this.direction = direction
-        this.fill_mode = fill_mode
-        this.play_state = play_state
-        this.main_usage = `${this.anim_name}{\n}`
-        this.sec_usage = `\n@keyframe ${this.anim_name}{@param}\n`
-        this.#addCssValues({"animation-name":this.anim_name,
-         "animation-duration":this.duration,
-         "animation-timing-function":this.timing_function,
-        "animation-delay": this.delay,
-        "animation-iteration-count": this.iteration_count,
-        "animation-direction":this.direction,
-        "animation-fill-mode":this.fill_mode,
-        "animation-play-state":this.play_state})
+
+        this.duration = duration.toString().includes("s") ? duration.toString() : duration.toString() + "s" 
+
+        this.timing_function = this.#ignoreCaseFind(x,"timing")
+        this.delay = this.#ignoreCaseFind(x,"delay")
+
+        this.iteration_count = this.#ignoreCaseFind(x,"itercount")
+
+        this.direction = this.#ignoreCaseFind(x,"direction")
+        this.fill_mode = this.#ignoreCaseFind(x,"fillmode")
+        this.play_state = this.#ignoreCaseFind(x,"playstate")
+        this.sec_usage = `\n@keyframes ${this.anim_name}{@param}\n`
+        this.vals = {"animation-name":this.anim_name,
+        "animation-duration":this.duration,
+        "animation-timing-function":this.timing_function,
+       "animation-delay": this.delay,
+       "animation-iteration-count": this.iteration_count,
+       "animation-direction":this.direction,
+       "animation-fill-mode":this.fill_mode,
+       "animation-play-state":this.play_state}
     }
-    #addCssValues(vals){
-        for (const [xr,yr] of Object.entries(vals)){
-            let x = [xr,yr]
-            if (x[1] == ""){
-                continue
-            }
-            this.main_usage = this.main_usage.slice(0,-1) + this.main_usage.split(this.main_usage.slice(0,-1))[0] + this.convertToCssLine(x) + "}"
+    /**
+     * 
+     * @param {Keyframe} keyframe the keyframe to add.
+     */
+    addKeyFrameParameter(keyframe){
+        if (this.keyFrameParams.includes(keyframe)){
+            return
         }
-        this.build()
-    }
-    addKeyFrameParameter(identifier = "from" || "to", property = []){
-        if(!(identifier in this.keyFrameParams)){
-            this.keyFrameParams[identifier] = []
-        }
-        this.keyFrameParams[identifier].push(this.convertToCssLine(property))
+        this.keyFrameParams.push(keyframe)
     }
     build(){
-        this.cssUsage = this.main_usage + this.sec_usage
+        for(const x of this.keyFrameParams){
+            this.sec_usage = this.sec_usage.replace("@param",`${x.usage}@param`)
+            console.log(x.usage)
+        }
+        for(const _x of this.objects){
+            for (const [xr,yr] of Object.entries(this.vals)){
+                let x = [xr,yr]
+                console.log(x)
+                if (x[1] == ""){
+                    continue
+                }
+                _x.cssUsage = _x.cssUsage.slice(0,-1) + _x.cssUsage.split(_x.cssUsage.slice(0,-1))[0] + this.convertToCssLine(x) + "}"
+            }
+            console.log(_x.cssUsage)
+        }
+        this.sec_usage = this.sec_usage.replace("@param",``)
+        this.cssUsage = this.sec_usage
         console.log(this.cssUsage)
     }
     convertToCssLine(val){
-        return "\t" + val[0] + ": " + val[1] + ";\n"
+        return `\t` + val[0] + ": " + val[1] + ";\n"
     }
 }
 class CSS{
     animations = []
-}
-class HTML{
-
+    /**
+     * 
+     * @param {Animation} anim 
+     */
+    addAnimation(anim){
+        
+    }
 }
 class Page{
     css = new CSS()
@@ -263,6 +361,8 @@ class Page{
         //#region HTML
         for (var k in this.elements){
             for (const x of this.elements[k]){
+                if (x.usage == null)
+                    continue
                 if (!x.placement){
                     this.head += x.usage.replace("\\l","") + "\n"
                     if (x.moreUsage && !this.head.includes(x.additionalUsage)){
@@ -585,4 +685,4 @@ class Address extends UIElement{
 class UITags{
     static br = "<br>"
 }
-export{Animation,UIElement,UITags,Address,Page,Text,Button,Div,Link,Image,Title}
+module.exports = {Keyframe, Animation,UIElement,UITags,Address,Page,Text,Button,Div,Link,Image,Title}
