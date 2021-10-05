@@ -1,13 +1,25 @@
-.clickmebutton{
-	position: relative;
+.button1class{
+	position: absolute;
+	top: 50%;
 	left: 50%;
-	background: red;
+	transform: scale(3);
+	animation-name: myanim;
+	animation-duration: 3s;
+	animation-delay: 2s;
+	animation-iteration-count: 5;
 }
-.pizzaClass{
-	position: relative;
-	left: 50%;
-}
-.address1{
-	position: relative;
-	left: 50%;
-}
+
+@keyframes myanim{
+	0% {
+		transform: scale(3)
+	}
+ 
+	50% {
+		transform: scale(6)
+	}
+ 
+	100% {
+		transform: scale(3)
+	}
+ }
+
